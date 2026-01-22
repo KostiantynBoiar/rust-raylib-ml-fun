@@ -1,23 +1,32 @@
 use crate::ml::layer::Layer;
 use raylib::prelude::*;
-use crate::graphic::connection::Connection;
+use crate::graphic::layout_config::LayoutConfig;
 
-pub struct Nodes{
-    pub layer: Layer,
-    pub radius: f32,
+pub struct Nodes<'a> {
+    pub layer: &'a Layer,
+    pub radius: i32,
     pub color: Color,
+    pub layer_number: i32,
+    pub config: LayoutConfig,
 }
 
-impl Nodes{
-    pub fn new(layer: Layer, radius: f32, color: Color) -> Self{
-        Self { layer, radius, color }
+impl<'a> Nodes<'a> {
+    pub fn new(layer: &'a Layer, color: Color, layer_number: i32, config: LayoutConfig) -> Self {
+        let radius = config.node_radius;
+        Self { layer, radius, color, layer_number, config }
     }
+    
     pub fn draw(&self, d: &mut RaylibDrawHandle) {
-        for (i, node) in self.layer.perceptrons.iter().enumerate() {
-            let y = i as i32 * (self.radius as i32 + 50) + 50;
-            let x = 50;
-            d.draw_circle(x, y, self.radius, self.color);
-            Connection::new((x, y), (x, y), node.weights[0]).draw(d);
+        for (i, _node) in self.layer.perceptrons.iter().enumerate() {
+            let x = self.config.get_layer_x(self.layer_number);
+            let y = self.config.get_node_y(i as i32);
+            d.draw_circle(x, y, self.radius as f32, self.color);
         }
+    }
+    
+    pub fn get_node_position(&self, node_index: usize) -> (i32, i32) {
+        let x = self.config.get_layer_x(self.layer_number);
+        let y = self.config.get_node_y(node_index as i32);
+        (x, y)
     }
 }

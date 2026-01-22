@@ -3,6 +3,8 @@ use rand::prelude::*;
 use crate::graphic::nodes::Nodes;
 use crate::ml::perceptron::Perceptron;
 use crate::ml::layer::Layer;
+use crate::graphic::model_visualisation::ModelVisualisation;
+use crate::ml::model::Model;
 
 pub struct Canvas{
     width: i32,
@@ -18,9 +20,9 @@ impl Canvas{
 
 impl Canvas{
     pub fn draw(&self, d: &mut RaylibDrawHandle) {
-        let nodes = Nodes::new(layer_generator(10), 10.0, Color::RED);
-        d.draw_rectangle(0, 0, self.width, self.height, self.color);
-        nodes.draw(d);
+        let model = Model::new(vec![layer_generator(10), layer_generator(10), layer_generator(10)]);
+        let model_visualisation = ModelVisualisation::new(model);
+        model_visualisation.draw(d);
     }
 }
 
