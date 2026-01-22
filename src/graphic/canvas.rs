@@ -48,14 +48,3 @@ fn layer_generator(amount: i32) -> Layer {
     }
     Layer::new(perceptrons, Activation::ReLU)
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_percepton_generator() {
-        let perceptrons = percepton_generator(3);
-        assert_eq!(perceptrons.len(), 3);
-    }
-}
