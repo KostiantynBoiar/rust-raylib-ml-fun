@@ -8,25 +8,22 @@ pub struct Dataset{
     pub test_data: Vec<(Vec<f64>, Vec<f64>)>
 }
 
-impl Dataset{
+impl Dataset {
     pub fn new(train_data: Vec<(Vec<f64>, Vec<f64>)>, test_data: Vec<(Vec<f64>, Vec<f64>)>) -> Self {
         Self { train_data, test_data }
     }
-    pub fn load_data(path: &str, split_ratio: f64) -> Result<Self, Box<dyn Error>>{
+
+    pub fn load_data(path: &str, split_ratio: f64) -> Result<Self, Box<dyn Error>> {
         let file = File::open(path).expect("Failed to open file");
         let reader = BufReader::new(file);
-        
         let mut all_data: Vec<(Vec<f64>, Vec<f64>)> = Vec::new();
 
-
-        for line in reader.lines(){
+        for line in reader.lines() {
             let line = line?;
-
             if line.trim().is_empty() {
                 continue;
             }
             let values: Vec<f64> = line.split(',').map(|s| s.parse().unwrap()).collect();
-
             let features = values[0..57].to_vec();
             let target = vec![values[57]];
             all_data.push((features, target));
@@ -37,57 +34,60 @@ impl Dataset{
         Ok(Dataset::new(train_data, test_data))
     }
 
-    pub fn normalization(&mut self){
+    pub fn normalize(&mut self) {
         if self.train_data.is_empty() {
             return;
         }
-        let num_features = self.train_data[0].0.len();
-        let mut min_values = vec![f64::INFINITY; num_features];
-        let mut max_values = vec![f64::NEG_INFINITY; num_features];
 
-        for (features, _) in &self.train_data {
-            for i in 0..num_features {
-                if features[i] < mins[i] {
-                    mins[i] = features[i];
-                }
-                if features[i] > maxs[i] {
-                    maxs[i] = features[i];
-                }
+        let num_features = self.train_data[0].0.len();
+        let mut mins = vec![f64::INFINITY; num_features];
+        let mut maxs = vec![f64::NEG_INFINITY; num_features];
+
+        find_min_max(&self.train_data, &mut mins, &mut maxs);
+        find_min_max(&self.test_data, &mut mins, &mut maxs);
+
+        apply_normalization(&mut self.train_data, &mins, &maxs);
+        apply_normalization(&mut self.test_data, &mins, &maxs);
+    }
+}
+
+fn find_min_max(
+    data: &[(Vec<f64>, Vec<f64>)],
+    mins: &mut [f64],
+    maxs: &mut [f64],
+) {
+    for (features, _) in data {
+        for i in 0..features.len() {
+            if features[i] < mins[i] {
+                mins[i] = features[i];
             }
-        }
-        for (features, _) in &self.test_data {
-            for i in 0..num_features {
-                if features[i] < mins[i] {
-                    mins[i] = features[i];
-                }
-                if features[i] > maxs[i] {
-                    maxs[i] = features[i];
-                }
-            }
-        }
-        for (features, _) in &mut self.train_data {
-            for i in 0..num_features {
-                let range = maxs[i] - mins[i];
-                if range > 0.0 {
-                    features[i] = (features[i] - mins[i]) / range;
-                }
-            }
-        }
-        for (features, _) in &mut self.test_data {
-            for i in 0..num_features {
-                let range = maxs[i] - mins[i];
-                if range > 0.0 {
-                    features[i] = (features[i] - mins[i]) / range;
-                }
+            if features[i] > maxs[i] {
+                maxs[i] = features[i];
             }
         }
     }
 }
-//TODO: move to utils both functions
+
+fn apply_normalization(
+    data: &mut [(Vec<f64>, Vec<f64>)],
+    mins: &[f64],
+    maxs: &[f64],
+) {
+    for (features, _) in data {
+        for i in 0..features.len() {
+            let range = maxs[i] - mins[i];
+            if range > 0.0 {
+                features[i] = (features[i] - mins[i]) / range;
+            }
+        }
+    }
+}
+
 fn shuffle_data(data: &mut Vec<(Vec<f64>, Vec<f64>)>) {
     let mut rng = rand::rng();
     data.shuffle(&mut rng);
 }
+
 fn split_data(
     data: Vec<(Vec<f64>, Vec<f64>)>,
     split_ratio: f64,
