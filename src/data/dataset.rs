@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use rand::prelude::*;
+use rand::prelude::SliceRandom;
 
 pub struct Dataset{
     pub train_data: Vec<(Vec<f64>, Vec<f64>)>,
@@ -30,8 +30,9 @@ impl Dataset{
             let features = values[0..57].to_vec();
             let target = vec![values[57]];
             all_data.push((features, target));
-            shuffle_data(&mut all_data);
+            
         }
+        shuffle_data(&mut all_data);
         let (train_data, test_data) = split_data(all_data, split_ratio);
         Ok(Dataset::new(train_data, test_data))
     }
