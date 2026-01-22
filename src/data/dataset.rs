@@ -30,13 +30,58 @@ impl Dataset{
             let features = values[0..57].to_vec();
             let target = vec![values[57]];
             all_data.push((features, target));
-            
         }
+
         shuffle_data(&mut all_data);
         let (train_data, test_data) = split_data(all_data, split_ratio);
         Ok(Dataset::new(train_data, test_data))
     }
 
+    pub fn normalization(&mut self){
+        if self.train_data.is_empty() {
+            return;
+        }
+        let num_features = self.train_data[0].0.len();
+        let mut min_values = vec![f64::INFINITY; num_features];
+        let mut max_values = vec![f64::NEG_INFINITY; num_features];
+
+        for (features, _) in &self.train_data {
+            for i in 0..num_features {
+                if features[i] < mins[i] {
+                    mins[i] = features[i];
+                }
+                if features[i] > maxs[i] {
+                    maxs[i] = features[i];
+                }
+            }
+        }
+        for (features, _) in &self.test_data {
+            for i in 0..num_features {
+                if features[i] < mins[i] {
+                    mins[i] = features[i];
+                }
+                if features[i] > maxs[i] {
+                    maxs[i] = features[i];
+                }
+            }
+        }
+        for (features, _) in &mut self.train_data {
+            for i in 0..num_features {
+                let range = maxs[i] - mins[i];
+                if range > 0.0 {
+                    features[i] = (features[i] - mins[i]) / range;
+                }
+            }
+        }
+        for (features, _) in &mut self.test_data {
+            for i in 0..num_features {
+                let range = maxs[i] - mins[i];
+                if range > 0.0 {
+                    features[i] = (features[i] - mins[i]) / range;
+                }
+            }
+        }
+    }
 }
 //TODO: move to utils both functions
 fn shuffle_data(data: &mut Vec<(Vec<f64>, Vec<f64>)>) {
