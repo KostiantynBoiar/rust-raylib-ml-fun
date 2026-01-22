@@ -1,4 +1,4 @@
-#[derive(Copy, Clone)]  // Add this line!
+#[derive(Copy, Clone)]
 pub struct LayoutConfig {
     pub layer_spacing: i32,
     pub node_spacing: i32,
