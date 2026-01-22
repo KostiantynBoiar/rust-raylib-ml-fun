@@ -12,12 +12,12 @@ impl LayoutConfig {
             layer_spacing: 200,
             node_spacing: 50,
             node_start_y: 150,
-            node_radius: 10,
+            node_radius: 25,
         }
     }
     
     pub fn get_layer_x(&self, layer_number: i32) -> i32 {
-        self.layer_spacing * layer_number
+        self.layer_spacing * layer_number + 50
     }
     
     pub fn get_node_y(&self, node_index: i32) -> i32 {

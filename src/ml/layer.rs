@@ -3,17 +3,18 @@ use crate::ml::activation::Activation;
 
 pub struct Layer {
     pub perceptrons: Vec<Perceptron>,
+    pub activation: Activation
 }
 
 impl Layer {
-    pub fn new(perceptrons: Vec<Perceptron>) -> Self {
-        Self { perceptrons }
+    pub fn new(perceptrons: Vec<Perceptron>, activation: Activation) -> Self {
+        Self { perceptrons, activation }
     }
     pub fn forward(&self, input: &[f64]) -> Vec<f64> {
         let mut output = Vec::new();
         for perceptron in &self.perceptrons {
             let weighted_sum = perceptron.forward(input);
-            let activated = Activation::ReLU.activate(weighted_sum);
+            let activated = self.activation.activate(weighted_sum);
             output.push(activated);
         }
         output

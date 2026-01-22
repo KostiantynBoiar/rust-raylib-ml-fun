@@ -1,38 +1,51 @@
 use raylib::prelude::*;
 use rand::prelude::*;
-use crate::graphic::nodes::Nodes;
 use crate::ml::perceptron::Perceptron;
 use crate::ml::layer::Layer;
 use crate::graphic::model_visualisation::ModelVisualisation;
 use crate::ml::model::Model;
+use crate::ml::activation::Activation;
 
-pub struct Canvas{
+pub struct Canvas {
     width: i32,
     height: i32,
     color: Color,
+    model_visualisation: ModelVisualisation,  // Store it here!
 }
 
-impl Canvas{
+impl Canvas {
     pub fn new(width: i32, height: i32, color: Color) -> Self {
-        Self { width, height, color }
-    }
-}
 
-impl Canvas{
-    pub fn draw(&self, d: &mut RaylibDrawHandle) {
-        let model = Model::new(vec![layer_generator(10), layer_generator(10), layer_generator(10)]);
+        let model = Model::new(vec![
+            layer_generator(10), 
+            layer_generator(10), 
+            layer_generator(10)
+        ]);
         let model_visualisation = ModelVisualisation::new(model);
-        model_visualisation.draw(d);
+        
+        Self { 
+            width, 
+            height, 
+            color,
+            model_visualisation 
+        }
+    }
+    
+    pub fn draw(&self, d: &mut RaylibDrawHandle) {
+        self.model_visualisation.draw(d);
     }
 }
 
-fn layer_generator(amount: i32) -> Layer{
+fn layer_generator(amount: i32) -> Layer {
     let mut rng = rand::rng();
     let mut perceptrons = Vec::new();
-    for _ in 0..amount{
-        perceptrons.push(Perceptron::new(vec![rng.gen_range(-1.0..1.0)], rng.gen_range(-1.0..1.0)));
+    for _ in 0..amount {
+        perceptrons.push(Perceptron::new(
+            vec![rng.gen_range(-1.0..1.0)], 
+            rng.gen_range(-1.0..1.0)
+        ));
     }
-    Layer::new(perceptrons)
+    Layer::new(perceptrons, Activation::ReLU)
 }
 
 #[cfg(test)]

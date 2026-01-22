@@ -1,4 +1,5 @@
 use crate::ml::layer::Layer;
+use crate::ml::activation::Activation;
 
 pub struct Model {
     pub layers: Vec<Layer>,
@@ -35,11 +36,11 @@ mod tests {
             Perceptron::new(vec![0.2, 0.3], 0.1),
             Perceptron::new(vec![0.4, 0.5], 0.2),
             Perceptron::new(vec![0.6, 0.7], 0.3),
-        ]);
+        ], Activation::ReLU);
 
         let output_layer = Layer::new(vec![
             Perceptron::new(vec![0.1, 0.2, 0.3], 0.0),
-        ]);
+        ], Activation::ReLU);
 
         let model = Model::new(vec![hidden_layer, output_layer]);
 
@@ -70,17 +71,17 @@ mod tests {
             Perceptron::new(vec![0.0, 1.0], 0.0),
             Perceptron::new(vec![0.5, 0.5], 0.0),
             Perceptron::new(vec![1.0, -1.0], 0.0),
-        ]);
+        ], Activation::ReLU);
 
         let layer_2 = Layer::new(vec![
             Perceptron::new(vec![0.25, 0.25, 0.25, 0.25], 0.0),
             Perceptron::new(vec![1.0, 0.0, 0.0, 0.0], 0.0),
             Perceptron::new(vec![0.0, 0.0, 0.0, 1.0], 0.0),
-        ]);
+        ], Activation::ReLU);
 
         let layer_3 = Layer::new(vec![
             Perceptron::new(vec![1.0, 1.0, 1.0], 0.0),
-        ]);
+        ], Activation::ReLU);
 
         let model = Model::new(vec![layer_1, layer_2, layer_3]);
 
