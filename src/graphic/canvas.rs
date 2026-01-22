@@ -1,0 +1,45 @@
+use raylib::prelude::*;
+use rand::prelude::*;
+use crate::graphic::nodes::Nodes;
+use crate::ml::perceptron::Perceptron;
+use crate::ml::layer::Layer;
+
+pub struct Canvas{
+    width: i32,
+    height: i32,
+    color: Color,
+}
+
+impl Canvas{
+    pub fn new(width: i32, height: i32, color: Color) -> Self {
+        Self { width, height, color }
+    }
+}
+
+impl Canvas{
+    pub fn draw(&self, d: &mut RaylibDrawHandle) {
+        let nodes = Nodes::new(layer_generator(10), 10.0, Color::RED);
+        d.draw_rectangle(0, 0, self.width, self.height, self.color);
+        nodes.draw(d);
+    }
+}
+
+fn layer_generator(amount: i32) -> Layer{
+    let mut rng = rand::rng();
+    let mut perceptrons = Vec::new();
+    for _ in 0..amount{
+        perceptrons.push(Perceptron::new(vec![rng.gen_range(-1.0..1.0)], rng.gen_range(-1.0..1.0)));
+    }
+    Layer::new(perceptrons)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_percepton_generator() {
+        let perceptrons = percepton_generator(3);
+        assert_eq!(perceptrons.len(), 3);
+    }
+}
