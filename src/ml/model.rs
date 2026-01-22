@@ -10,10 +10,10 @@ impl Model {
         Self { layers }
     }
 
-    pub fn forward(&self, input: &[f64]) -> Vec<f64> {
+    pub fn forward(&mut self, input: &[f64]) -> Vec<f64> {
         let mut current = input.to_vec();
 
-        for layer in &self.layers {
+        for layer in &mut self.layers {
             current = layer.forward(&current);
         }
 
@@ -42,9 +42,9 @@ mod tests {
             Perceptron::new(vec![0.1, 0.2, 0.3], 0.0),
         ], Activation::ReLU);
 
-        let model = Model::new(vec![hidden_layer, output_layer]);
+        let mut model = Model::new(vec![hidden_layer, output_layer]);
 
-        let input = vec![1.0, 2.0];
+        let mut input = vec![1.0, 2.0];
 
         // Hidden layer:
         // Neuron 1: (0.2 * 1.0) + (0.3 * 2.0) + 0.1 = 0.9, ReLU = 0.9
@@ -58,7 +58,7 @@ mod tests {
         //         = 1.1
         // ReLU = 1.1
 
-        let output = model.forward(&input);
+        let output = model.forward(&mut input);
         assert!((output[0] - 1.1).abs() < 0.0001);
     }
 
@@ -83,15 +83,15 @@ mod tests {
             Perceptron::new(vec![1.0, 1.0, 1.0], 0.0),
         ], Activation::ReLU);
 
-        let model = Model::new(vec![layer_1, layer_2, layer_3]);
+        let mut model = Model::new(vec![layer_1, layer_2, layer_3]);
 
-        let input = vec![4.0, 2.0];
+        let mut input = vec![4.0, 2.0];
 
         // Layer 1: [4.0, 2.0, 3.0, 2.0]
         // Layer 2: [2.75, 4.0, 2.0]
         // Layer 3: [8.75]
 
-        let output = model.forward(&input);
+        let output = model.forward(&mut input);
         assert!((output[0] - 8.75).abs() < 0.0001);
     }
 }
