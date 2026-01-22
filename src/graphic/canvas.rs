@@ -17,9 +17,10 @@ impl Canvas {
     pub fn new(width: i32, height: i32, color: Color) -> Self {
 
         let model = Model::new(vec![
-            layer_generator(10), 
-            layer_generator(10), 
-            layer_generator(10)
+            layer_generator(2), 
+            layer_generator(6), 
+            layer_generator(3),
+            layer_generator(1)
         ]);
         let model_visualisation = ModelVisualisation::new(model);
         

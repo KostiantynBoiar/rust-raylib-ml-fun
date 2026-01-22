@@ -3,7 +3,7 @@ pub enum Loss{
 }
 
 impl Loss{
-    pub fn loss(&self, predicted: f64, actual: f64) -> f64 {
+    pub fn calculate(&self, predicted: f64, actual: f64) -> f64 {
         match self {
             Loss::SumSquaredError => sum_squared_error(predicted, actual),
         }
