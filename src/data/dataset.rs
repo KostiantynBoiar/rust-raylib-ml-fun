@@ -105,7 +105,6 @@ mod tests {
     #[test]
     fn test_load_spambase() {
         let dataset = Dataset::load_data("spambase/spambase.data", 0.8).unwrap();
-
         println!("Train: {}", dataset.train_data.len());
         println!("Test: {}", dataset.test_data.len());
 

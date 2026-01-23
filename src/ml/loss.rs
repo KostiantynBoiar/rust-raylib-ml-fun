@@ -8,6 +8,11 @@ impl Loss{
             Loss::SumSquaredError => sum_squared_error(predicted, actual),
         }
     }
+    pub fn derivative(&self, predicted: f64, actual: f64) -> f64 {
+        match self {
+            Loss::SumSquaredError => predicted - actual,
+        }
+    }
 }
 
 pub fn sum_squared_error(predicted: f64, actual: f64) -> f64 {
