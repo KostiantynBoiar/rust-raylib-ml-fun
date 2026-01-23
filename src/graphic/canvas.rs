@@ -5,33 +5,45 @@ use crate::ml::layer::Layer;
 use crate::graphic::model_visualisation::ModelVisualisation;
 use crate::ml::model::Model;
 use crate::ml::activation::Activation;
+use crate::data::dataset::Dataset;
 
 pub struct Canvas {
     width: i32,
     height: i32,
     color: Color,
-    model_visualisation: ModelVisualisation,  // Store it here!
+    model_visualisation: ModelVisualisation,
+    dataset: Dataset,
+    current_epoch: i32,
+    current_loss: f64,
+    is_training: bool
 }
 
 impl Canvas {
     pub fn new(width: i32, height: i32, color: Color) -> Self {
 
-        let model = Model::new(vec![
-            layer_generator(2), 
-            layer_generator(6), 
-            layer_generator(3),
-            layer_generator(1)
-        ]);
+        let (model, dataset) = create_spam_classifier();
         let model_visualisation = ModelVisualisation::new(model);
         
         Self { 
             width, 
             height, 
             color,
-            model_visualisation 
+            model_visualisation,
+            dataset,
+            current_epoch: 0,
+            current_loss: 0.0,
+            is_training: false,
         }
     }
-    
+    pub fn update(&mut self){
+        if self.is_training{
+            self.current_loss = self.model_visualisation.model.train_epoch(&self.dataset.train_data, 0.01);
+            self.current_epoch += 1;
+        }
+        if self.current_epoch >= 1000{
+            self.is_training = false;
+        }
+    }
     pub fn draw(&self, d: &mut RaylibDrawHandle) {
         self.model_visualisation.draw(d);
     }
@@ -47,4 +59,32 @@ fn layer_generator(amount: i32) -> Layer {
         ));
     }
     Layer::new(perceptrons, Activation::ReLU)
+}
+
+fn create_spam_classifier() -> (Model, Dataset) {
+    let mut dataset = Dataset::load_data("spambase/spambase.data", 0.8).unwrap();
+    dataset.normalize();
+
+    let hidden1 = create_layer(57, 32, Activation::ReLU);
+    let hidden2 = create_layer(32, 16, Activation::ReLU);
+    let output = create_layer(16, 1, Activation::Sigmoid);
+
+    let model = Model::new(vec![hidden1, hidden2, output]);
+
+    (model, dataset)
+}
+fn create_layer(num_inputs: usize, num_neurons: usize, activation: Activation) -> Layer {
+    let mut rng = rand::rng();
+    let mut perceptrons = Vec::new();
+
+    for _ in 0..num_neurons {
+        let weights: Vec<f64> = (0..num_inputs)
+            .map(|_| rng.gen_range(-0.5..0.5))
+            .collect();
+        let bias = rng.gen_range(-0.1..0.1);
+        
+        perceptrons.push(Perceptron::new(weights, bias));
+    }
+
+    Layer::new(perceptrons, activation)
 }
