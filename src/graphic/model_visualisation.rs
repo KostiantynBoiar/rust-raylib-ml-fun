@@ -14,7 +14,7 @@ impl ModelVisualisation {
     }
     
     pub fn draw(&self, d: &mut RaylibDrawHandle) {
-        let config = LayoutConfig::default();  // Create config once
+        let config = LayoutConfig::default();
         
         let mut node_layers: Vec<Nodes> = Vec::new();
         

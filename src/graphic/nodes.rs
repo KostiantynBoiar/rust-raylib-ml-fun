@@ -17,7 +17,7 @@ impl<'a> Nodes<'a> {
     }
     
     pub fn draw(&self, d: &mut RaylibDrawHandle) {
-        for (i, node) in self.layer.perceptrons.iter().enumerate() {
+        for (i, _node) in self.layer.perceptrons.iter().enumerate() {
             let x = self.config.get_layer_x(self.layer_number);
             let y = self.config.get_node_y(i as i32);
             d.draw_circle(x, y, self.radius as f32, self.color);

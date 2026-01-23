@@ -1,6 +1,5 @@
 use raylib::prelude::*;
 use crate::graphic::canvas::Canvas;
-use crate::ml::perceptron::Perceptron;
 
 pub struct Window{
     width: i32,
@@ -21,9 +20,10 @@ impl Window{
             .title(&self.title)
             .build();
 
-        let canvas = Canvas::new(self.width, self.height, Color::BLACK);
+        let mut canvas = Canvas::new(self.width, self.height, Color::BLACK);
 
         while !rl.window_should_close() {
+            canvas.update();
             let mut d = rl.begin_drawing(&thread);
             d.clear_background(Color::WHITE);
             d.draw_rectangle(0, 0, self.width, self.height, Color::WHITE);

@@ -2,9 +2,6 @@ mod ml;
 mod graphic; 
 mod data;
 
-use ml::perceptron::Perceptron;
-use ml::layer::Layer;
-use ml::model::Model;
 use graphic::window::Window;
 
 fn main() {

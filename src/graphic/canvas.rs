@@ -32,33 +32,24 @@ impl Canvas {
             dataset,
             current_epoch: 0,
             current_loss: 0.0,
-            is_training: false,
+            is_training: true,
         }
     }
     pub fn update(&mut self){
         if self.is_training{
             self.current_loss = self.model_visualisation.model.train_epoch(&self.dataset.train_data, 0.01);
             self.current_epoch += 1;
+            if self.current_epoch % 10 == 0{
+                println!("Epoch {}: loss = {:.4}", self.current_epoch, self.current_loss);
+            }
         }
-        if self.current_epoch >= 1000{
+        if self.current_epoch >= 100{
             self.is_training = false;
         }
     }
     pub fn draw(&self, d: &mut RaylibDrawHandle) {
         self.model_visualisation.draw(d);
     }
-}
-
-fn layer_generator(amount: i32) -> Layer {
-    let mut rng = rand::rng();
-    let mut perceptrons = Vec::new();
-    for _ in 0..amount {
-        perceptrons.push(Perceptron::new(
-            vec![rng.gen_range(-1.0..1.0)], 
-            rng.gen_range(-1.0..1.0)
-        ));
-    }
-    Layer::new(perceptrons, Activation::ReLU)
 }
 
 fn create_spam_classifier() -> (Model, Dataset) {
@@ -79,9 +70,9 @@ fn create_layer(num_inputs: usize, num_neurons: usize, activation: Activation) -
 
     for _ in 0..num_neurons {
         let weights: Vec<f64> = (0..num_inputs)
-            .map(|_| rng.gen_range(-0.5..0.5))
+            .map(|_| rng.random_range(-0.5..0.5))
             .collect();
-        let bias = rng.gen_range(-0.1..0.1);
+        let bias = rng.random_range(-0.1..0.1);
         
         perceptrons.push(Perceptron::new(weights, bias));
     }
