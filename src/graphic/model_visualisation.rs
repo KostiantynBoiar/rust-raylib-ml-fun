@@ -14,7 +14,9 @@ impl ModelVisualisation {
     }
     
     pub fn draw(&self, d: &mut RaylibDrawHandle) {
-        let config = LayoutConfig::default();
+        let canvas_width = d.get_screen_width();
+        let canvas_height = d.get_screen_height();
+        let config = LayoutConfig::new(canvas_width, canvas_height);
         
         let mut node_layers: Vec<Nodes> = Vec::new();
         
