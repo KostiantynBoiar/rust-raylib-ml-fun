@@ -23,7 +23,7 @@ impl Window{
         let mut canvas = Canvas::new(self.width, self.height, Color::BLACK);
 
         while !rl.window_should_close() {
-            canvas.update();
+            canvas.update(&rl);
             let mut d = rl.begin_drawing(&thread);
             d.clear_background(Color::WHITE);
             d.draw_rectangle(0, 0, self.width, self.height, Color::WHITE);

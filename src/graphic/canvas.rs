@@ -1,54 +1,138 @@
 use raylib::prelude::*;
 use rand::prelude::*;
+use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use std::thread::{self, JoinHandle};
+use std::time::Duration;
 use crate::ml::perceptron::Perceptron;
 use crate::ml::layer::Layer;
 use crate::graphic::model_visualisation::ModelVisualisation;
+use crate::graphic::camera::Camera;
 use crate::ml::model::Model;
 use crate::ml::activation::Activation;
 use crate::data::dataset::Dataset;
+
+struct TrainingState {
+    model: Arc<Mutex<Model>>,
+    dataset: Arc<Dataset>,
+    epoch: Arc<AtomicU32>,
+    loss: Arc<Mutex<f64>>,
+    is_running: Arc<AtomicBool>,
+}
 
 pub struct Canvas {
     width: i32,
     height: i32,
     color: Color,
     model_visualisation: ModelVisualisation,
-    dataset: Dataset,
-    current_epoch: i32,
-    current_loss: f64,
-    is_training: bool
+    training_state: TrainingState,
+    training_thread: Option<JoinHandle<()>>,
+    last_update_epoch: u32,
+    update_interval: u32,
+    camera: Camera,
 }
 
 impl Canvas {
     pub fn new(width: i32, height: i32, color: Color) -> Self {
-
         let (model, dataset) = create_spam_classifier();
-        let model_visualisation = ModelVisualisation::new(model);
+        let model_visualisation = ModelVisualisation::new(model.clone());
+        
+        let camera = Camera::new(width, height);
+        
+        let shared_model = Arc::new(Mutex::new(model));
+        let shared_dataset = Arc::new(dataset);
+        let shared_epoch = Arc::new(AtomicU32::new(0));
+        let shared_loss = Arc::new(Mutex::new(0.0));
+        let shared_running = Arc::new(AtomicBool::new(true));
+        
+        let training_state = TrainingState {
+            model: shared_model.clone(),
+            dataset: shared_dataset.clone(),
+            epoch: shared_epoch.clone(),
+            loss: shared_loss.clone(),
+            is_running: shared_running.clone(),
+        };
+        
+        let thread_model = shared_model.clone();
+        let thread_dataset = shared_dataset.clone();
+        let thread_epoch = shared_epoch.clone();
+        let thread_loss = shared_loss.clone();
+        let thread_running = shared_running.clone();
+        
+        let training_thread = thread::spawn(move || {
+            let mut current_epoch = 0u32;
+            
+            while thread_running.load(Ordering::Relaxed) && current_epoch < 100 {
+                let loss = {
+                    let mut model = thread_model.lock().unwrap();
+                    model.train_epoch(&thread_dataset.train_data, 0.01)
+                };
+                
+                current_epoch += 1;
+                thread_epoch.store(current_epoch, Ordering::Relaxed);
+                *thread_loss.lock().unwrap() = loss;
+                
+                if current_epoch % 10 == 0 {
+                    println!("Epoch {}: loss = {:.4}", current_epoch, loss);
+                }
+                
+                thread::sleep(Duration::from_millis(1));
+            }
+            
+
+            thread_running.store(false, Ordering::Relaxed);
+            println!("Training complete!");
+        });
         
         Self { 
             width, 
             height, 
             color,
             model_visualisation,
-            dataset,
-            current_epoch: 0,
-            current_loss: 0.0,
-            is_training: true,
+            training_state,
+            training_thread: Some(training_thread),
+            last_update_epoch: 0,
+            update_interval: 10,
+            camera,
         }
     }
-    pub fn update(&mut self){
-        if self.is_training{
-            self.current_loss = self.model_visualisation.model.train_epoch(&self.dataset.train_data, 0.01);
-            self.current_epoch += 1;
-            if self.current_epoch % 10 == 0{
-                println!("Epoch {}: loss = {:.4}", self.current_epoch, self.current_loss);
+    pub fn update(&mut self, rl: &RaylibHandle){
+        let current_epoch = self.training_state.epoch.load(Ordering::Relaxed);
+        
+        if current_epoch >= self.last_update_epoch + self.update_interval {
+            let model = self.training_state.model.lock().unwrap().clone();
+            self.model_visualisation = ModelVisualisation::new(model);
+            self.last_update_epoch = current_epoch;
+        }
+        
+        if rl.is_key_pressed(KeyboardKey::KEY_SPACE) {
+            let current_state = self.training_state.is_running.load(Ordering::Relaxed);
+            self.training_state.is_running.store(!current_state, Ordering::Relaxed);
+            if !current_state {
+                println!("Training resumed");
+            } else {
+                println!("Training paused");
             }
         }
-        if self.current_epoch >= 100{
-            self.is_training = false;
-        }
+        
+        self.camera.handle_input(rl);
     }
     pub fn draw(&self, d: &mut RaylibDrawHandle) {
-        self.model_visualisation.draw(d);
+        {
+            let mut camera_mode = d.begin_mode2D(self.camera.as_camera2d());
+            self.model_visualisation.draw(&mut camera_mode);
+        }
+    }
+}
+
+impl Drop for Canvas {
+    fn drop(&mut self) {
+        self.training_state.is_running.store(false, Ordering::Relaxed);
+        
+        if let Some(handle) = self.training_thread.take() {
+            let _ = handle.join();
+            println!("Training thread stopped");
+        }
     }
 }
 

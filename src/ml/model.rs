@@ -1,6 +1,7 @@
 use crate::ml::layer::Layer;
 use crate::ml::loss::Loss;
 
+#[derive(Clone)]
 pub struct Model {
     pub layers: Vec<Layer>,
 }

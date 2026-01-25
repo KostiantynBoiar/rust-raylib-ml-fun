@@ -1,6 +1,7 @@
 use crate::ml::perceptron::Perceptron;
 use crate::ml::activation::Activation;
 
+#[derive(Clone)]
 pub struct Layer {
     pub perceptrons: Vec<Perceptron>,
     pub activation: Activation,

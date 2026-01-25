@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Perceptron {
     pub weights: Vec<f64>,  // one weight per input
     pub bias: f64,          // single bias
