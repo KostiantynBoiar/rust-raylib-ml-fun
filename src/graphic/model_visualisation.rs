@@ -25,7 +25,6 @@ impl ModelVisualisation {
             node_layers.push(nodes);
         }
         
-        // Draw connections
         for i in 0..node_layers.len() - 1 {
             let start_layer = &node_layers[i];
             let end_layer = &node_layers[i + 1];
@@ -33,7 +32,6 @@ impl ModelVisualisation {
             connection.draw(d);
         }
         
-        // Draw nodes
         for nodes in &node_layers {
             nodes.draw(d);
         }

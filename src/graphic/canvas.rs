@@ -60,28 +60,7 @@ impl Canvas {
         let thread_running = shared_running.clone();
         
         let training_thread = thread::spawn(move || {
-            let mut current_epoch = 0u32;
-            
-            while thread_running.load(Ordering::Relaxed) && current_epoch < 100 {
-                let loss = {
-                    let mut model = thread_model.lock().unwrap();
-                    model.train_epoch(&thread_dataset.train_data, 0.01)
-                };
-                
-                current_epoch += 1;
-                thread_epoch.store(current_epoch, Ordering::Relaxed);
-                *thread_loss.lock().unwrap() = loss;
-                
-                if current_epoch % 10 == 0 {
-                    println!("Epoch {}: loss = {:.4}", current_epoch, loss);
-                }
-                
-                thread::sleep(Duration::from_millis(1));
-            }
-            
-
-            thread_running.store(false, Ordering::Relaxed);
-            println!("Training complete!");
+            Self::training_loop(thread_running, thread_model, thread_dataset, thread_epoch, thread_loss);
         });
         
         Self { 
@@ -96,6 +75,37 @@ impl Canvas {
             camera,
         }
     }
+
+    fn training_loop(
+        thread_running: Arc<AtomicBool>,
+        thread_model: Arc<Mutex<Model>>,
+        thread_dataset: Arc<Dataset>,
+        thread_epoch: Arc<AtomicU32>,
+        thread_loss: Arc<Mutex<f64>>,
+    ) {
+        let mut current_epoch = 0u32;
+        
+        while thread_running.load(Ordering::Relaxed) && current_epoch < 100 {
+            let loss = {
+                let mut model = thread_model.lock().unwrap();
+                model.train_epoch(&thread_dataset.train_data, 0.01)
+            };
+            
+            current_epoch += 1;
+            thread_epoch.store(current_epoch, Ordering::Relaxed);
+            *thread_loss.lock().unwrap() = loss;
+            
+            if current_epoch % 10 == 0 {
+                println!("Epoch {}: loss = {:.4}", current_epoch, loss);
+            }
+            
+            thread::sleep(Duration::from_millis(1));
+        }
+        
+        thread_running.store(false, Ordering::Relaxed);
+        println!("Training complete!");
+    }
+
     pub fn update(&mut self, rl: &RaylibHandle){
         let current_epoch = self.training_state.epoch.load(Ordering::Relaxed);
         
